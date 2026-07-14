@@ -5,6 +5,8 @@
   "type": "module",
   "main": "server/index.js",
   "scripts": {
+    "build": "node server/build.js",
+    "prestart": "npm run build",
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "test": "node --test",
@@ -24,7 +26,8 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "^1.47.0",
-    "eslint": "^8.57.0"
+    "eslint": "^8.57.0",
+    "terser": "^5.49.0"
   },
   "engines": {
     "node": ">=20"
