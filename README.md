@@ -340,12 +340,55 @@ curl http://localhost:3000/api/health
 # {"status":"ok","aiConfigured":false,"timestamp":"2026-07-14T..."}
 ```
 
-### Health Check
+---
 
+## Troubleshooting
+
+### Vercel: "Could not process message: Request failed (504)"
+
+**Symptom:** Chat endpoint returns 504 Gateway Timeout on Vercel (works locally).
+
+**Root Cause:** AI API calls timeout before Vercel function completes.
+
+**Solution (Already Applied):**
+1. ✅ `vercel.json` → `maxDuration: 60` (increased from 10s)  
+2. ✅ `aiProvider.js` → `max_tokens: 500` (faster AI response)  
+3. ✅ `timeout: 30000` on https requests (30s connection timeout)  
+4. Trigger redeploy: Push to main branch or `vercel --prod`
+
+**Manual Verification:**
 ```bash
-curl http://localhost:3000/api/health
-# Response: {"status": "ok", "aiConfigured": true, "timestamp": "..."}
+curl https://your-vercel-app.vercel.app/api/health
 ```
+If `"aiConfigured": true` but still getting 504, try:
+- Clear Vercel cache: `vercel --prod --skip-build` 
+- Check OpenRouter API key in dashboard → Environment Variables
+
+### Rate Limiting: "Request failed (429)"
+
+**Symptom:** After ~15 requests, endpoint returns 429 Too Many Requests.
+
+**Solution:** Update environment variable:
+- Vercel dashboard → Environment Variables
+- Add/edit `RATE_LIMIT_PER_MINUTE=50` (or desired limit)
+- Redeploy
+
+Default limit: 15 requests per minute per IP address.
+
+### No AI Responses / "fallback" mode
+
+**Symptom:** All chat/translate/incident responses say "AI unavailable" or fallback reply, even though API key is set.
+
+**Checklist:**
+1. Vercel dashboard → Environment Variables
+   - `OPENROUTER_API_KEY` is set and not empty?
+   - `AI_PROVIDER` = `openrouter` (or your choice)?
+2. Health endpoint check:  
+   ```bash
+   curl https://your-app.vercel.app/api/health
+   # Look for "aiConfigured": true
+   ```
+3. If `aiConfigured: false`: Environment variables not loaded. Re-deploy after setting them.
 
 ---
 
