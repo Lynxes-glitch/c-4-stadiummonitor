@@ -15,7 +15,6 @@
     "lint": "eslint server public/js tests"
   },
   "dependencies": {
-    "better-sqlite3": "^12.11.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

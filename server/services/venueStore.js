@@ -1,4 +1,5 @@
 // venueStore.js
+import { logger } from "../utils/logger.js";
 // Loads and indexes venue graphs. Supports both static venue files
 // and dynamically uploaded venues. All venues are indexed for fast lookup.
 
@@ -36,9 +37,9 @@ function initializeVenues() {
         const venue = { ...data, nodesById, adjacency };
 
         venues.set(data.id, venue);
-        console.log(`Loaded venue: ${data.name} (${data.id})`);
+        logger.info(`Loaded venue: ${data.name} (${data.id})`);
       } catch (err) {
-        console.error(`Failed to load venue from ${file}:`, err.message);
+        logger.error(`Failed to load venue from ${file}:`, err.message);
       }
     }
 
@@ -48,9 +49,9 @@ function initializeVenues() {
     }
 
     initialized = true;
-    console.log(`Initialized ${venues.size} venues, default: ${defaultVenueId}`);
+    logger.info(`Initialized ${venues.size} venues, default: ${defaultVenueId}`);
   } catch (err) {
-    console.error("Failed to initialize venues:", err);
+    logger.error("Failed to initialize venues:", err);
   }
 }
 

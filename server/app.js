@@ -11,6 +11,7 @@ import { translateRouter } from "./routes/translate.js";
 import { historyRouter } from "./routes/history.js";
 import { auditRouter } from "./routes/audit.js";
 import { venueRouter } from "./routes/venues.js";
+import { logger } from "./utils/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -39,7 +40,7 @@ export function createApp() {
 
   // Generic error handler: never leak stack traces or raw error internals.
   app.use((err, _req, res, _next) => {
-    console.error(err); // server-side log only
+    logger.error(err); // server-side log only
     res.status(500).json({ error: "Internal server error." });
   });
 
