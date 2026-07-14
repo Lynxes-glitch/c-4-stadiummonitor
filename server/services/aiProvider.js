@@ -164,7 +164,7 @@ async function callOpenRouter(prompt) {
   );
   if (!res.ok) throw new AIProviderError(`AI provider returned non-200 status`);
   const data = await res.json();
-  return data.choicentent ?? "";
+  return data.choices?.[0]?.message?.content ?? "";
 }
 
 export function safeParseJSON(text) {
