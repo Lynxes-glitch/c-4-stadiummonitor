@@ -2,8 +2,10 @@
 // Tracks gate occupancy over time for trend analysis and historical queries.
 // Stores in-memory time-series data with configurable retention.
 
-const MAX_HISTORY_POINTS = 288; // 24 hours at 5-minute intervals
-const SAMPLE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+import { appConfig } from "../config.js";
+
+const MAX_HISTORY_POINTS = appConfig.history.maxPoints;
+const SAMPLE_INTERVAL_MS = appConfig.history.sampleIntervalMs;
 
 // venueId -> { gateId -> [{timestamp, current, capacity, ratio, status}] }
 const historyStore = new Map();

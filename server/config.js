@@ -24,3 +24,27 @@ export const config = {
   allowedOrigins: (process.env.ALLOWED_ORIGINS || "http://localhost:3000").split(",").map((s) => s.trim()),
   nodeEnv: process.env.NODE_ENV || "development",
 };
+
+// Application configuration constants
+export const appConfig = {
+  crowd: {
+    watchThreshold: 0.7,
+    criticalThreshold: 0.85,
+  },
+  history: {
+    maxPoints: 288, // 24 hours at 5-minute intervals
+    sampleIntervalMs: 5 * 60 * 1000, // 5 minutes
+  },
+  ai: {
+    requestIntervalMs: 300,
+    requestTimeoutMs: 5000,
+    cacheTtlMs: 120000, // 2 minutes
+    cacheMaxSize: 500,
+  },
+  audit: {
+    maxEntries: 500,
+  },
+  pathfinding: {
+    cacheMaxSize: 1000,
+  },
+};

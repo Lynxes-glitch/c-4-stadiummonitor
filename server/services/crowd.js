@@ -7,8 +7,12 @@
 import { callModel, safeParseJSON, AIProviderError } from "./aiProvider.js";
 import { recordSnapshot } from "./historicalData.js";
 import { logAIDecision } from "../utils/audit-logger.js";
+import { appConfig } from "../config.js";
 
-export const THRESHOLDS = { watch: 0.7, critical: 0.85 };
+export const THRESHOLDS = {
+  watch: appConfig.crowd.watchThreshold,
+  critical: appConfig.crowd.criticalThreshold,
+};
 
 const GATES = ["gate-a", "gate-b", "gate-c", "gate-d", "gate-e", "gate-f"];
 

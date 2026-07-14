@@ -2,9 +2,10 @@
 // Centralized logging for all AI-powered decisions: enables explainability & debugging
 
 import { randomUUID } from "node:crypto";
+import { appConfig } from "../config.js";
 
-// In-memory audit log (last 500 decisions)
-const MAX_AUDIT_ENTRIES = 500;
+// In-memory audit log (last N decisions)
+const MAX_AUDIT_ENTRIES = appConfig.audit.maxEntries;
 let auditLog = [];
 
 /**
