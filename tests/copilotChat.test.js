@@ -47,4 +47,34 @@ describe("askCopilot", () => {
     assert.ok(result.reply);
     assert.ok(result.reply.length > 0);
   });
+
+  it("handles congestion question with critical gates", async () => {
+    const result = await askCopilot("which gates are congested?", mockVenue, mockGateStatuses);
+    assert.strictEqual(result.source, "fallback");
+    assert.ok(result.reply.toLowerCase().includes("critical") || result.reply.toLowerCase().includes("b"));
+    assert.strictEqual(result.confidence, "high");
+  });
+
+  it("handles congestion question with no critical gates", async () => {
+    const okGates = [
+      { gate: "gate-a", current: 50, capacity: 100, ratio: 0.5, status: "ok" },
+      { gate: "gate-b", current: 60, capacity: 100, ratio: 0.6, status: "ok" }
+    ];
+    const result = await askCopilot("are any gates busy?", mockVenue, okGates);
+    assert.strictEqual(result.source, "fallback");
+    assert.ok(result.reply.toLowerCase().includes("ok") || result.reply.toLowerCase().includes("70%"));
+    assert.strictEqual(result.confidence, "high");
+  });
+
+  it("handles accessibility question", async () => {
+    const result = await askCopilot("where are wheelchair accessible entries?", mockVenue, mockGateStatuses);
+    assert.strictEqual(result.source, "fallback");
+    assert.ok(result.reply.toLowerCase().includes("accessible") || result.reply.toLowerCase().includes("step-free"));
+  });
+
+  it("handles medical post near gate question", async () => {
+    const result = await askCopilot("medical near gate A", mockVenue, mockGateStatuses);
+    assert.strictEqual(result.source, "fallback");
+    assert.ok(result.reply.toLowerCase().includes("medical"));
+  });
 });
