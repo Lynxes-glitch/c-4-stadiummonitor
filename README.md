@@ -50,16 +50,14 @@ Pathfinding determines nearest responder post, AI infers severity from free-text
 
 ---
 
-## AI Cascade Fallback System
+## AI Fast-Fail System
 
 **Tier 1: Primary AI** (`google/gemma-4-26b-a4b-it:free`)
 - OpenRouter free model with 50 requests/day limit
+- 3-second timeout for fast response
 
-**Tier 2: Secondary AI** (`tencent/hy3:free`)
-- Backup free model  
-- Activates if primary fails
-
-**Tier 3: Smart Fallback** (No AI required)
+**Tier 2: Smart Fallback** (No AI required)
+- Activates immediately on AI failure
 - Uses venue graph and live data
   - **Crowd:** Summarizes gate statuses
   - **Wayfinding:** Returns route steps without AI phrasing
@@ -78,8 +76,8 @@ Pathfinding determines nearest responder post, AI infers severity from free-text
 ```
 
 **Benefits:**
-- ✅ Never fails (works when OpenRouter free tier exhausted)
-- ✅ Accurate responses (uses real venue data)
+- ✅ Fast responses (3s AI timeout, immediate fallback)
+- ✅ Never fails (smart fallback uses real venue data)
 - ✅ Cost-effective (maximizes free tier)
 - ✅ Transparent (`source` field shows which tier answered)
 

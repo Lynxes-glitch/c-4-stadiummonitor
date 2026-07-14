@@ -60,7 +60,7 @@ export class AIProviderError extends Error {}
 
 /**
  * Sends a prompt to the configured provider and returns raw text.
- * Implements cascade fallback: gemma-4 -> tencent -> error
+ * Implements fast-fail: single AI attempt -> smart fallback on error
  * Throws AIProviderError on any failure (missing key, network, non-2xx) —
  * callers are expected to fail closed (generic error to the client, no
  * internals leaked) rather than let this bubble up raw.
@@ -105,8 +105,7 @@ export async function callModel(prompt) {
 
 async function callOpenRouterWithFallback(prompt) {
   const models = [
-    "google/gemma-4-26b-a4b-it:free",  // Primary free model
-    "tencent/hy3:free"                  // Fallback free model
+    "google/gemma-4-26b-a4b-it:free"  // Single model, fail fast to smart fallback
   ];
 
   let lastError;
