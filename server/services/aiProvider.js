@@ -7,18 +7,52 @@
 // deterministic core, and its credentials never cross the network to the browser.
 
 import https from "https";
-import { config } from "../config.js";
+import { config, appConfig } from "../config.js";
 
 // Simple in-process throttle: protects the configured API key from being
 // exhausted by a burst of requests (in addition to the per-IP rate limiter
 // in middleware, which protects against abusive clients).
 let lastCallAt = 0;
-const MIN_INTERVAL_MS = 300;
+const MIN_INTERVAL_MS = appConfig.ai.requestIntervalMs;
 
 async function throttle() {
   const wait = lastCallAt + MIN_INTERVAL_MS - Date.now();
   if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   lastCallAt = Date.now();
+}
+
+// Response cache: Map<promptHash, {response, expiresAt}>
+const responseCache = new Map();
+const CACHE_TTL_MS = appConfig.ai.cacheTtlMs;
+const CACHE_MAX_SIZE = appConfig.ai.cacheMaxSize;
+
+function hashPrompt(prompt) {
+  let hash = 0;
+  for (let i = 0; i < prompt.length; i++) {
+    hash = ((hash << 5) - hash) + prompt.charCodeAt(i) | 0;
+  }
+  return hash.toString(36);
+}
+
+function getCached(prompt) {
+  const key = hashPrompt(prompt);
+  const entry = responseCache.get(key);
+  if (entry && Date.now() < entry.expiresAt) {
+    return entry.response;
+  }
+  responseCache.delete(key); // cleanup expired
+  return null;
+}
+
+function setCache(prompt, response) {
+  const key = hashPrompt(prompt);
+  responseCache.set(key, { response, expiresAt: Date.now() + CACHE_TTL_MS });
+
+  // LRU-lite: drop oldest entry if cache grows too large
+  if (responseCache.size > CACHE_MAX_SIZE) {
+    const firstKey = responseCache.keys().next().value;
+    responseCache.delete(firstKey);
+  }
 }
 
 export class AIProviderError extends Error {}
@@ -34,21 +68,34 @@ export async function callModel(prompt) {
   if (!config.aiProvider || !config.aiApiKey) {
     throw new AIProviderError("No AI provider configured on the server (missing API key).");
   }
+
+  // Check cache first
+  const cached = getCached(prompt);
+  if (cached) {
+    console.log("AI cache hit");
+    return cached;
+  }
+
   await throttle();
 
+  let result;
   // Cascade fallback for OpenRouter
   if (config.aiProvider === "openrouter") {
-    return await callOpenRouterWithFallback(prompt);
+    result = await callOpenRouterWithFallback(prompt);
+    setCache(prompt, result);
+    return result;
   }
 
   try {
     switch (config.aiProvider) {
-      case "openai": return await callOpenAI(prompt);
-      case "gemini": return await callGemini(prompt);
-      case "anthropic": return await callAnthropic(prompt);
+      case "openai": result = await callOpenAI(prompt); break;
+      case "gemini": result = await callGemini(prompt); break;
+      case "anthropic": result = await callAnthropic(prompt); break;
       default:
         throw new AIProviderError(`Unknown AI_PROVIDER: ${config.aiProvider}`);
     }
+    setCache(prompt, result);
+    return result;
   } catch (err) {
     if (err instanceof AIProviderError) throw err;
     throw new AIProviderError(`AI call failed: ${err.message}`);
@@ -57,8 +104,7 @@ export async function callModel(prompt) {
 
 async function callOpenRouterWithFallback(prompt) {
   const models = [
-    "openai/gpt-oss-20b:free",
-    "tencent/hy3:free"
+    "nvidia/llama-nemotron-rerank-vl-1b-v2:free"  // Small, fast free model
   ];
 
   let lastError;
@@ -93,7 +139,7 @@ function postRequest(url, headers, body) {
         "Content-Length": Buffer.byteLength(data),
       },
       family: 4, // Force IPv4 to prevent IPv6 timeout issues in macOS Node fetch
-      timeout: 30000, // 30s timeout to prevent Vercel function timeout (60s limit)
+      timeout: appConfig.ai.requestTimeoutMs, // Fast timeout - fail to deterministic fallback
     };
 
     const req = https.request(options, (res) => {

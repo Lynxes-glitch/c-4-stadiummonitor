@@ -4,6 +4,8 @@
 // Incident Triage features: the AI is only ever asked to phrase an already-
 // correct route, never to invent one.
 
+import { appConfig } from "../config.js";
+
 /**
  * Builds a bidirectional adjacency list from the raw edge list.
  * Pure function — no I/O, trivially testable.
@@ -21,6 +23,14 @@ export function buildAdjacency(edges) {
   return adj;
 }
 
+// Cache for Dijkstra results - static venue graph means results are deterministic
+const pathCache = new Map();
+const CACHE_MAX_SIZE = appConfig.pathfinding.cacheMaxSize;
+
+function getCacheKey(startId, targetId, requireStepFree) {
+  return `${startId}:${targetId}:${requireStepFree}`;
+}
+
 /**
  * Dijkstra's algorithm with an O(n) priority step (fine for a venue graph of
  * this size; a binary heap would be the next optimization for a much larger
@@ -33,6 +43,12 @@ export function buildAdjacency(edges) {
  * @returns {{ path: string[], distanceMeters: number } | null}
  */
 export function shortestPath(adjacency, startId, targetId, requireStepFree = false) {
+  // Check cache first
+  const cacheKey = getCacheKey(startId, targetId, requireStepFree);
+  if (pathCache.has(cacheKey)) {
+    return pathCache.get(cacheKey);
+  }
+
   if (!adjacency.has(startId)) return null;
   if (startId === targetId) return { path: [startId], distanceMeters: 0 };
 
@@ -76,7 +92,18 @@ export function shortestPath(adjacency, startId, targetId, requireStepFree = fal
   }
   if (path[0] !== startId) return null;
 
-  return { path, distanceMeters: dist.get(targetId) };
+  const result = { path, distanceMeters: dist.get(targetId) };
+
+  // Cache the result
+  pathCache.set(cacheKey, result);
+
+  // LRU-lite: drop oldest if cache grows too large
+  if (pathCache.size > CACHE_MAX_SIZE) {
+    const firstKey = pathCache.keys().next().value;
+    pathCache.delete(firstKey);
+  }
+
+  return result;
 }
 
 /**
