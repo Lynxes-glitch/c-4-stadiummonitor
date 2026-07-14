@@ -313,3 +313,150 @@ MIT License — see LICENSE file.
 **Challenge:** FIFA World Cup 2026 Smart Stadiums & Tournament Operations  
 **Focus:** Volunteers managing match-day operations  
 **AI Usage:** Genuine reasoning layer over deterministic algorithmic core
+
+---
+
+## Challenge Vertical
+
+**Smart Stadiums & Tournament Operations**
+
+This solution addresses the **volunteer operations** persona during FIFA World Cup 2026 match days, focusing on four operational verticals:
+
+1. **Crowd Management** - Real-time gate capacity monitoring and intelligent recommendations
+2. **Wayfinding & Navigation** - Graph-based routing with multilingual directions
+3. **Incident Triage & Escalation** - Context-aware severity classification and dispatch
+4. **Multilingual Assistance** - Translation with tone detection for effective communication
+
+---
+
+## Approach and Logic
+
+### Core Philosophy: AI as Reasoning Layer, Not Decision Maker
+
+**Deterministic Core:**
+- **Pathfinding:** Dijkstra's algorithm computes shortest routes over venue graph
+- **Crowd Classification:** Mathematical thresholds (70% watch, 85% critical) applied to live occupancy data
+- **Facility Matching:** Graph traversal finds nearest responder posts by type (medical, security, lost-and-found)
+
+**AI Layer:**
+- **Explains** why a gate is congested (reads computed ratios, drafts human-readable recommendation)
+- **Phrases** routes naturally in 8 languages (Dijkstra provides waypoints, AI converts to "Turn left at...")
+- **Infers** incident severity from free-text context (not keywords)
+- **Translates** with tone detection (casual vs. urgent vs. medical)
+
+### Why This Architecture?
+
+1. **Testability** - Deterministic core has unit tests; AI is mocked at boundary
+2. **Reliability** - If AI fails, core functions still work (routes computed, gates classified)
+3. **Transparency** - Volunteers see real numbers, not AI hallucinations
+4. **Compliance** - AI never invents facts (gate %, distances, facility locations)
+
+### AI Cascade Fallback Strategy
+
+To maximize free-tier reliability:
+
+```
+Request → Try gpt-oss-20b (fast, capable)
+       ↓ (429 rate limit)
+       → Try tencent/hy3 (backup)
+       ↓ (empty/fails)
+       → Smart Fallback (uses venue graph + live data, no AI)
+```
+
+Smart fallback answers common questions using:
+- Live gate occupancy data (congestion queries)
+- Dijkstra pathfinding (medical post locations)
+- Venue metadata (accessibility features)
+
+**Rdical",
+     location: "gate-a",
+     description: "elderly fan dizzy, trouble standing"
+   }
+
+2. Server validates with Zod schema
+   
+3. Deterministic: Dijkstra finds nearest "medical_post" from "gate-a"
+   → Returns: medical-1 (25m via concourse-n)ut: {
+     severity: "P1-urgent",
+     dispatch: "Medical team to Gate A, suspected orthostatic hypotension",
+     calmPhrase: "Help is on the way, please sit down and stay calm"
+   }
+
+5. Response: {
+     nearestPost: "medical-1",
+     distance: 25,
+     route: ["gate-a", "concourse-n", "medical-1"],
+     severity: "P1-urgent",
+     dispatch: "...",
+     source: "model"
+   }
+```
+
+**If AI fails:** Returns deterministic routing + generic dispatch template (source: "fallback")
+
+### Data Flow
+
+```
+Browser (fetch) → Express Route → Zod Validation
+                                      ↓
+                               Service Layer (pure functions)
+                                      ↓
+                            ┌─────────┴─────────┐
+                            ↓                   ↓
+                    Deterministic          AI Provider
+                    (pathfinding,          (cascade)
+                     classification)            ↓
+                            ↓              gpt-oss → tencent → smart
+                            ↓                   ↓
+                            └─────────┬─────────┘
+                                      ↓
+                                 JSON Response
+                                      ↓
+                               Browser renders
+```
+
+---
+
+## Assumptions
+
+### Venue Data
+- **Assumption:** Stadium graphs are pre-loaded from `server/data/*.json`
+- **Reality:** Real deployment would pull from venue CMS or database
+- **Impact:** Pathfinding logic is agnostic to data source; only the loader changes
+
+### Crowd Simulation
+- **Assumption:** In-memory simulation aupancy deterministically
+- **Reality:** Production would consume live turnstile/CCTV feeds
+- **Impact:** Classification thresholds (70%/85%) are centralized constants; real data plugs in at same seam
+
+### Operational Thresholds
+- **Assumption:** 70% = watch, 85% = critical (reasonable defaults)
+- **Reality:** Each venue tunes thresholds based on gate geometry, historical flow
+- **Impact:** Thresholds are single-source constants in `server/services/crowd.js`
+
+### AI Provider Availability
+- **Assumption:** OpenRouter free tier may exhaust (50 requests/day limit)
+- **Reality:** Production would use paid tier or dedicated provider
+- **Impact:** Cascade fallback ensures app never fails, even on free tier
+
+### Language Support
+- **Assumption:** AI can phrase directions in 8 languages (English, Spanish, French, Portuguese, Arabic, Chinese, Japanese, Korean)
+- **Reality:** Quality varies by model; production would validate with native speakers
+- **Impact:** Fallback provides English + suggests Wayfinding panel for other languages
+
+### Network Latency
+- **Assumption:** AI calls complete within 30s (enforced timeout)
+- **Reality:** Vercel serverless has 60s function limit
+- **Impact:** `max_tokens: 500` and cascade ensure fast responses; 504s prevented
+
+### No User Accounts
+- **Assumption:** Volunteers use app during shift without login
+- **Reality:** Production might add auth for audit trail of who actioned what
+- **Impact:** Stateless design makes adding auth straightforward (JWT middleware)
+
+### Single Venue Mode
+- **Assumption:** One venue per deployment (demo-stadium.json)
+- **Reality:** Previous version supported multi-venue switching
+- **Impact:** Removed to reduce complexity; can re-add if needed
+
+---
