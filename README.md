@@ -46,14 +46,23 @@ Computes shortest walking routes (Dijkstra's algorithm), then AI phrases directi
 Free-text translation with tone detection — understands context beyond keywords.
 
 ### 4. Incident Triage & Escalation
-Report back on rate limits (50 requests/day)
+Pathfinding determines nearest responder post, AI infers severity from free-text description.
+
+---
+
+## AI Cascade Fallback System
+
+**Tier 1: Primary AI** (`google/gemma-4-26b-a4b-it:free`)
+- OpenRouter free model with 50 requests/day limit
 
 **Tier 2: Secondary AI** (`tencent/hy3:free`)
 - Backup free model  
 - Activates if primary fails
 
 **Tier 3: Smart Fallback** (No AI required)
-- Use data
+- Uses venue graph and live data
+  - **Crowd:** Summarizes gate statuses
+  - **Wayfinding:** Returns route steps without AI phrasing
   - **Medical post locations:** Uses pathfinding
   - **Accessibility:** Provides step-free routes
 - Returns `"source": "fallback"` in responses

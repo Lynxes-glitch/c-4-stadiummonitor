@@ -27,6 +27,7 @@ const CACHE_TTL_MS = appConfig.ai.cacheTtlMs;
 const CACHE_MAX_SIZE = appConfig.ai.cacheMaxSize;
 
 function hashPrompt(prompt) {
+  // 32-bit rolling hash - low collision risk given short cache TTL (2min) and low volume
   let hash = 0;
   for (let i = 0; i < prompt.length; i++) {
     hash = ((hash << 5) - hash) + prompt.charCodeAt(i) | 0;
@@ -59,7 +60,7 @@ export class AIProviderError extends Error {}
 
 /**
  * Sends a prompt to the configured provider and returns raw text.
- * Implements cascade fallback: gpt-oss -> tencent -> error
+ * Implements cascade fallback: gemma-4 -> tencent -> error
  * Throws AIProviderError on any failure (missing key, network, non-2xx) —
  * callers are expected to fail closed (generic error to the client, no
  * internals leaked) rather than let this bubble up raw.
@@ -104,7 +105,8 @@ export async function callModel(prompt) {
 
 async function callOpenRouterWithFallback(prompt) {
   const models = [
-    "google/gemma-4-26b-a4b-it:free"  // Original working model
+    "google/gemma-4-26b-a4b-it:free",  // Primary free model
+    "tencent/hy3:free"                  // Fallback free model
   ];
 
   let lastError;
@@ -227,7 +229,7 @@ async function callOpenRouterModel(prompt, model) {
     {
       "Content-Type": "application/json",
       Authorization: `Bearer ${config.aiApiKey}`,
-      "HTTP-Referer": "https://github.com/google/antigravity",
+      "HTTP-Referer": "https://github.com/Lynxes-glitch/c-4-stadiummonitor",
       "X-Title": "StadiumMonitor",
     },
     {

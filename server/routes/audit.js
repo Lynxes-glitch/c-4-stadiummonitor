@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { getAuditLog, getAuditLogByEndpoint, getAuditStats } from "../utils/audit-logger.js";
+import { auditRateLimiter } from "../middleware/rateLimit.js";
 
 export const auditRouter = Router();
 
 // GET /api/audit/log - Get recent AI decisions
-auditRouter.get("/api/audit/log", (req, res) => {
+auditRouter.get("/api/audit/log", auditRateLimiter, (req, res) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit, 10) : 50;
     const log = getAuditLog(limit);
@@ -20,7 +21,7 @@ auditRouter.get("/api/audit/log", (req, res) => {
 });
 
 // GET /api/audit/log/:endpoint - Get audit log filtered by endpoint
-auditRouter.get("/api/audit/log/:endpoint(*)", (req, res) => {
+auditRouter.get("/api/audit/log/:endpoint(*)", auditRateLimiter, (req, res) => {
   try {
     const endpoint = `/${req.params.endpoint}`;
     const limit = req.query.limit ? parseInt(req.query.limit, 10) : 50;
@@ -38,7 +39,7 @@ auditRouter.get("/api/audit/log/:endpoint(*)", (req, res) => {
 });
 
 // GET /api/audit/stats - Get audit statistics
-auditRouter.get("/api/audit/stats", (_req, res) => {
+auditRouter.get("/api/audit/stats", auditRateLimiter, (_req, res) => {
   try {
     const stats = getAuditStats();
     res.json(stats);
