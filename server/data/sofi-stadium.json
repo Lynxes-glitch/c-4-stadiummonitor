@@ -23,7 +23,7 @@
     { "id": "security-field", "name": "Field Security", "type": "security_post", "x": 300, "y": 300 },
     { "id": "guest-services", "name": "Guest Services & Lost Items", "type": "lost_and_found", "x": 210, "y": 230 },
     { "id": "accessible-north", "name": "Accessible North Entry", "type": "accessible_entry", "x": 300, "y": 60 },
-    { "id": "accessible-south", "name": "Accessible South Entry", "type": "accessible_en "x": 300, "y": 410 }
+    { "id": "accessible-south", "name": "Accessible South Entry", "type": "accessible_entry", "x": 300, "y": 410 }
   ],
   "edges": [
     { "from": "gate-a", "to": "plaza-north", "distance_m": 60, "step_free": true },

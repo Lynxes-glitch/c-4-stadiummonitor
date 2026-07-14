@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { validateBody } from "../middleware/validate.js";
-import { storeVenue, listVenues, loadVenue as loadVenueByID } from "../services/venueStore.js";
+import { storeVenue, listVenues, loadVenue as loadVenueByID, hasVenue } from "../services/venueStore.js";
 
 export const venueRouter = Router();
 
@@ -18,10 +18,10 @@ venueRouter.get("/api/venues", (_req, res) => {
 // GET /api/venues/:id - Get specific venue by ID
 venueRouter.get("/api/venues/:id", (req, res) => {
   try {
-    const venue = loadVenueByID(req.params.id);
-    if (!venue) {
+    if (!hasVenue(req.params.id)) {
       return res.status(404).json({ error: "Venue not found" });
     }
+    const venue = loadVenueByID(req.params.id);
     res.json({ venue });
   } catch (err) {
     res.status(500).json({ error: "Failed to load venue" });

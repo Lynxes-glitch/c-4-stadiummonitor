@@ -127,6 +127,18 @@ export function setDefaultVenue(id) {
 }
 
 /**
+ * Check if a venue exists
+ * @param {string} venueId - The venue ID to check
+ * @returns {boolean} True if venue exists
+ */
+export function hasVenue(venueId) {
+  if (!initialized) {
+    initializeVenues();
+  }
+  return venues.has(venueId);
+}
+
+/**
  * Get the current default venue ID
  * @returns {string} Current default venue ID
  */
