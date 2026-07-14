@@ -37,7 +37,7 @@ export const appConfig = {
   },
   ai: {
     requestIntervalMs: 300,
-    requestTimeoutMs: 3000,
+    requestTimeoutMs: 5000,
     cacheTtlMs: 120000, // 2 minutes
     cacheMaxSize: 500,
   },

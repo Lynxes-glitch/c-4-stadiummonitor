@@ -54,7 +54,7 @@ Pathfinding determines nearest responder post, AI infers severity from free-text
 
 **Tier 1: Primary AI** (`google/gemma-4-26b-a4b-it:free`)
 - OpenRouter free model with 50 requests/day limit
-- 3-second timeout for fast response
+- 5-second timeout for response
 
 **Tier 2: Smart Fallback** (No AI required)
 - Activates immediately on AI failure
@@ -76,7 +76,7 @@ Pathfinding determines nearest responder post, AI infers severity from free-text
 ```
 
 **Benefits:**
-- ✅ Fast responses (3s AI timeout, immediate fallback)
+- ✅ Fast responses (5s AI timeout, immediate fallback)
 - ✅ Never fails (smart fallback uses real venue data)
 - ✅ Cost-effective (maximizes free tier)
 - ✅ Transparent (`source` field shows which tier answered)
