@@ -11,6 +11,9 @@ RUN npm ci --only=production
 # Copy application code
 COPY . .
 
+# Build minified assets
+RUN npm run build
+
 # Expose port
 EXPOSE 3000
 
