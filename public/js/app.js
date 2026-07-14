@@ -434,53 +434,7 @@ async function api(path, options = {}) {
   return body;
 }
 
-/**
- * Load available venues and populate the venue selector dropdown
- */
-async function loadAvailableVenues() {
-  try {
-    const response = await api("/api/venues");
-    const venues = response.venues || [];
-    const select = el("venueSelect");
-    select.innerHTML = "";
-
-    if (venues.length === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "No venues available";
-      opt.disabled = true;
-      select.appendChild(opt);
-      return;
-    }
-
-    // Add default option
-    const defaultOpt = document.createElement("option");
-    defaultOpt.value = "";
-    defaultOpt.textContent = "Select a venue...";
-    select.appendChild(defaultOpt);
-
-    // Add venue options
-    const selectedVenueId = localStorage.getItem("selectedVenueId");
-    venues.forEach((venue) => {
-      const opt = document.createElement("option");
-      opt.value = venue.id;
-      opt.textContent = `${venue.name} (${venue.nodeCount} nodes)`;
-      select.appendChild(opt);
-      
-      if (venue.id === selectedVenueId) {
-        opt.selected = true;
-      }
-    });
-  } catch (err) {
-    console.error("Failed to load venues:", err);
-    const select = el("venueSelect");
-    const opt = document.createElement("option");
-    opt.value = "";
-    opt.textContent = "Error loading venues";
-    opt.disabled = true;
-    select.appendChild(opt);
-  }
-}
+// Venue selection removed - using single default stadium
 
 /* ---------- Tabs ---------- */
 function wireTabs() {
@@ -1242,14 +1196,7 @@ async function init() {
   });
 
   // Load available venues and populate selector
-  await loadAvailableVenues();
-  el("venueSelect").addEventListener("change", (e) => {
-    const venueId = e.target.value;
-    if (venueId) {
-      localStorage.setItem("selectedVenueId", venueId);
-      window.location.reload(); // Reload with new venue
-    }
-  });
+  // Venue selection removed - using single default stadium
 
   const { nodes } = await api("/api/venue/nodes");
   const { edges } = await api("/api/venue/edges");

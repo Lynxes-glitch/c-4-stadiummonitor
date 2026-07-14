@@ -25,6 +25,7 @@ export class AIProviderError extends Error {}
 
 /**
  * Sends a prompt to the configured provider and returns raw text.
+ * Implements cascade fallback: gpt-oss -> tencent -> error
  * Throws AIProviderError on any failure (missing key, network, non-2xx) —
  * callers are expected to fail closed (generic error to the client, no
  * internals leaked) rather than let this bubble up raw.
@@ -35,12 +36,16 @@ export async function callModel(prompt) {
   }
   await throttle();
 
+  // Cascade fallback for OpenRouter
+  if (config.aiProvider === "openrouter") {
+    return await callOpenRouterWithFallback(prompt);
+  }
+
   try {
     switch (config.aiProvider) {
       case "openai": return await callOpenAI(prompt);
       case "gemini": return await callGemini(prompt);
       case "anthropic": return await callAnthropic(prompt);
-      case "openrouter": return await callOpenRouter(prompt);
       default:
         throw new AIProviderError(`Unknown AI_PROVIDER: ${config.aiProvider}`);
     }
@@ -48,6 +53,29 @@ export async function callModel(prompt) {
     if (err instanceof AIProviderError) throw err;
     throw new AIProviderError(`AI call failed: ${err.message}`);
   }
+}
+
+async function callOpenRouterWithFallback(prompt) {
+  const models = [
+    "openai/gpt-oss-20b:free",
+    "tencent/hy3:free"
+  ];
+
+  let lastError;
+
+  for (const model of models) {
+    try {
+      console.log(`Trying OpenRouter model: ${model}`);
+      const result = await callOpenRouterModel(prompt, model);
+      console.log(`Success with model: ${model}`);
+      return result;
+    } catch (err) {
+      console.error(`Failed with ${model}:`, err.message);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new AIProviderError("All OpenRouter models failed");
 }
 
 function postRequest(url, headers, body) {
@@ -147,7 +175,7 @@ async function callAnthropic(prompt) {
   return data.content?.[0]?.text ?? "";
 }
 
-async function callOpenRouter(prompt) {
+async function callOpenRouterModel(prompt, model) {
   const res = await postRequest(
     "https://openrouter.ai/api/v1/chat/completions",
     {
@@ -157,13 +185,17 @@ async function callOpenRouter(prompt) {
       "X-Title": "StadiumMonitor",
     },
     {
-      model: config.openrouterModel,
+      model: model,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.3,
       max_tokens: 500,
     }
   );
-  if (!res.ok) throw new AIProviderError(`AI provider returned non-200 status`);
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`OpenRouter error (${res.status}):`, errorText);
+    throw new AIProviderError(`AI provider returned status ${res.status}`);
+  }
   const data = await res.json();
   return data.choices?.[0]?.message?.content ?? "";
 }

@@ -8,7 +8,6 @@ import { wayfindingRouter } from "./routes/wayfinding.js";
 import { crowdRouter } from "./routes/crowd.js";
 import { incidentRouter } from "./routes/incident.js";
 import { translateRouter } from "./routes/translate.js";
-import { venueRouter } from "./routes/venues.js";
 import { historyRouter } from "./routes/history.js";
 import { auditRouter } from "./routes/audit.js";
 
@@ -33,7 +32,6 @@ export function createApp() {
   app.use(crowdRouter);
   app.use(incidentRouter);
   app.use(translateRouter);
-  app.use(venueRouter);
   app.use(historyRouter);
   app.use(auditRouter);
 

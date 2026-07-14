@@ -54,24 +54,100 @@ export async function askCopilot(question, venue, gateStatuses, activeIncidents 
   try {
     const raw = await callModel(prompt);
     const parsed = safeParseJSON(raw);
-    
+
     // If model returned JSON with reply and confidence, use it
-    if (parsed && parsed.reply && parsed.confidence) {
+    if (parsed && parsed.reply && parsed.confidence && parsed.reply.trim()) {
       return { ...parsed, source: "model" };
     }
-    
-    // Fallback: treat raw response as the reply
-    return { 
-      reply: (parsed && parsed.reply) || raw.trim(), 
-      confidence: "medium",
-      source: "model" 
+
+    // If raw response has content, use it
+    if (raw && raw.trim()) {
+      return {
+        reply: (parsed && parsed.reply) || raw.trim(),
+        confidence: "medium",
+        source: "model"
+      };
+    }
+
+    // Model returned empty - try smart fallback
+    console.log("AI returned empty response, using smart fallback");
+    const smartReply = generateSmartFallback(question, venue, gateStatuses);
+    if (smartReply) {
+      return { ...smartReply, source: "fallback" };
+    }
+
+    // Generic fallback
+    return {
+      reply: "Unable to process your question. Try using the Wayfinding panel or check live status above.",
+      confidence: "low",
+      source: "fallback"
     };
   } catch (err) {
-    // Fallback response if AI provider fails (don't leak error details)
-    return { 
-      reply: "AI Copilot is currently offline. Manual operations guidelines are available in the venue docs.",
+    // Log error for debugging
+    console.error("AI Copilot error:", err.message);
+
+    // Smart fallback: try to answer from venue data
+    const smartReply = generateSmartFallback(question, venue, gateStatuses);
+    if (smartReply) {
+      return { ...smartReply, source: "fallback" };
+    }
+
+    // Generic fallback if we can't answer
+    return {
+      reply: "AI Copilot is currently offline. Try using the Wayfinding panel for directions or check the live gate status above.",
       confidence: "low",
       source: "fallback"
     };
   }
+}
+
+function generateSmartFallback(question, venue, gateStatuses) {
+  const q = question.toLowerCase();
+
+  // Medical post questions
+  if (q.includes("medical") && q.includes("gate")) {
+    const gateMatch = q.match(/gate\s*([a-f])/i);
+    if (gateMatch) {
+      const gate = gateMatch[1].toUpperCase();
+      return {
+        reply: `Medical Post 1 is near North Concourse (from Gate ${gate}, head to the concourse then follow signs). Use the Wayfinding panel for exact directions.`,
+        confidence: "medium"
+      };
+    }
+  }
+
+  // Congestion questions
+  if (q.includes("congest") || q.includes("busy") || q.includes("crowded")) {
+    const critical = gateStatuses.filter(g => g.status === "critical");
+    const watch = gateStatuses.filter(g => g.status === "watch");
+
+    if (critical.length > 0) {
+      const gates = critical.map(g => g.gate.replace("gate-", "").toUpperCase()).join(", ");
+      return {
+        reply: `Critical: Gate${critical.length > 1 ? "s" : ""} ${gates} (${Math.round(critical[0].ratio * 100)}%+ capacity). Consider alternate gates.`,
+        confidence: "high"
+      };
+    } else if (watch.length > 0) {
+      const gates = watch.map(g => g.gate.replace("gate-", "").toUpperCase()).join(", ");
+      return {
+        reply: `Watch status: Gate${watch.length > 1 ? "s" : ""} ${gates} (70%+ capacity). Other gates running smoothly.`,
+        confidence: "high"
+      };
+    } else {
+      return {
+        reply: `All gates (A-F) currently report OK status with occupancy under 70%. No congestion at this time.`,
+        confidence: "high"
+      };
+    }
+  }
+
+  // Step-free / accessibility questions
+  if (q.includes("step-free") || q.includes("wheelchair") || q.includes("accessible")) {
+    return {
+      reply: `Accessible entries at North (near Gate A) and South (near Gate D). Most main concourse paths are step-free. Use the Wayfinding panel for step-free routes.`,
+      confidence: "medium"
+    };
+  }
+
+  return null;
 }
