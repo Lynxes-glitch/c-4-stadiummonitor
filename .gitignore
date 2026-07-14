@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.DS_Store
+*.log
+coverage/
+playwright-report/
+test-results/
+.vercel/
+.railway/
+dist/
+.claude-code.json

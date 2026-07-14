@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stadium Monitor — Volunteer AI Co-Pilot</title>
+<link rel="stylesheet" href="css/styles.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <div>
+      <h1>Stadium Monitor</h1>
+      <p class="tagline">Volunteer AI Co-Pilot · Crowd Reasoning · Wayfinding · Incident Triage</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <select id="venueSelect" class="venue-selector" aria-label="Select venue">
+      <option value="">Loading venues...</option>
+    </select>
+    <button id="contrastToggle" class="btn btn-ghost" aria-pressed="false">High contrast</button>
+    <button id="textSizeToggle" class="btn btn-ghost" aria-pressed="false">Large text</button>
+    <span id="aiStatusBadge" class="badge">Checking AI status…</span>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Sections">
+  <button class="tab-btn active" data-tab="crowd" aria-current="true">Crowd Capacity</button>
+  <button class="tab-btn" data-tab="wayfinding">Wayfinding</button>
+  <button class="tab-btn" data-tab="concessions">Concessions &amp; Eco</button>
+  <button class="tab-btn" data-tab="incident">Incident Triage</button>
+</nav>
+
+<main id="main" class="dashboard-grid">
+  <div class="control-panel">
+    <section id="tab-crowd" class="tab-panel active" aria-labelledby="gatesHeading">
+      <div class="panel gates-panel">
+        <div class="panel-head">
+          <h2 id="gatesHeading">Gate Capacity</h2>
+          <div class="data-controls">
+            <button id="tickBtn" class="btn btn-ghost small">Advance simulation</button>
+            <button id="explainBtn" class="btn btn-primary small">Run AI reasoning pass</button>
+          </div>
+        </div>
+        <ul id="gateList" class="gate-list" aria-live="polite"></ul>
+      </div>
+
+      <!-- Active Alerts & Assistance Feed -->
+      <div class="panel alerts-panel">
+        <div class="panel-head">
+          <h2>Active Alerts &amp; Assistance Feed</h2>
+        </div>
+        <p class="hint">Live queue-triggered notifications. Click alert body to track, or Escalate to AI Copilot.</p>
+        <ul id="alertsFeedList" class="alert-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+          <li class="alert-card surge-alert" style="background: rgba(226,61,61,0.06); border: 1px dashed var(--crimson); border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div data-alert-action="surge-gate-c" style="cursor: pointer; display: flex; gap: 10px; align-items: center; flex: 1;">
+              <span class="alert-badge surge-badge" style="background: #c53030; color: white; font-family: var(--font-mono); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">Surge P0</span>
+              <div class="alert-body">
+                <strong style="font-size: 0.85rem; color: var(--floodlight);">Surge Warning at Gate C</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Capacity at 93% · Click to analyze</div>
+              </div>
+            </div>
+            <button class="btn btn-ghost small escalate-btn" data-escalate="surge-gate-c" style="border-color: var(--amber); color: var(--amber); font-size: 0.65rem; padding: 2px 6px; width: auto;">Escalate</button>
+          </li>
+          <li class="alert-card assistance-alert" style="background: rgba(0,229,255,0.06); border: 1px dashed #00e5ff; border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div data-alert-action="escort-101" style="cursor: pointer; display: flex; gap: 10px; align-items: center; flex: 1;">
+              <span class="alert-badge assist-badge" style="background: #00e5ff; color: var(--navy-950); font-family: var(--font-mono); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">Assist</span>
+              <div class="alert-body">
+                <strong style="font-size: 0.85rem; color: var(--floodlight);">Wheelchair Escort Needed</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Location: Section 101 · Click to compute path</div>
+              </div>
+            </div>
+            <button class="btn btn-ghost small escalate-btn" data-escalate="escort-101" style="border-color: var(--amber); color: var(--amber); font-size: 0.65rem; padding: 2px 6px; width: auto;">Escalate</button>
+          </li>
+          <li class="alert-card facility-alert" style="background: rgba(245,166,35,0.06); border: 1px dashed var(--amber); border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div data-alert-action="facility-north" style="cursor: pointer; display: flex; gap: 10px; align-items: center; flex: 1;">
+              <span class="alert-badge facility-badge" style="background: var(--amber); color: var(--navy-950); font-family: var(--font-mono); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">Facility</span>
+              <div class="alert-body">
+                <strong style="font-size: 0.85rem; color: var(--floodlight);">Water Refill Post Offline</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Location: North Concourse · Click to compute path</div>
+              </div>
+            </div>
+            <button class="btn btn-ghost small escalate-btn" data-escalate="facility-north" style="border-color: var(--amber); color: var(--amber); font-size: 0.65rem; padding: 2px 6px; width: auto;">Escalate</button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- JSON Simulation Ingestion -->
+      <div class="panel simulation-panel">
+        <div class="panel-head">
+          <h2>JSON Simulation Ingestion</h2>
+          <button id="loadSimBtn" class="btn btn-primary small">Load Telemetry</button>
+        </div>
+        <p class="hint">Paste custom gate capacity JSON to override simulation telemetry.</p>
+        <textarea id="simJsonInput" rows="4" style="font-family: var(--font-mono); font-size: 0.75rem;" placeholder='[
+  {"gate": "gate-a", "current": 1800, "capacity": 2000},
+  {"gate": "gate-c", "current": 1400, "capacity": 1500}
+]'></textarea>
+        <div id="simFeedback" style="font-size: 0.75rem; color: var(--pitch); margin-top: 4px; display: none;"></div>
+      </div>
+
+      <div class="panel reasoning-panel">
+        <div class="panel-head"><h2>AI Reasoning Feed</h2></div>
+        <div id="reasoningFeed" class="reasoning-feed" role="log" aria-live="polite" aria-relevant="additions">
+          <p class="hint">Click "Run AI reasoning pass" once a gate is in Watch or Critical status.</p>
+        </div>
+        <p class="hint">Capacity math is deterministic. The AI only explains <em>why</em> and drafts the recommendation — it never invents the numbers.</p>
+      </div>
+    </section>
+
+    <section id="tab-wayfinding" class="tab-panel" aria-labelledby="wayHeading">
+      <div class="panel">
+        <div class="panel-head"><h2 id="wayHeading">Graph-Based Wayfinding</h2></div>
+        <form id="wayfindingForm" class="stacked-form">
+          <label for="startNode">Fan's current location</label>
+          <select id="startNode"></select>
+          <label for="targetNode">Where they want to go</label>
+          <select id="targetNode"></select>
+          <label for="wayLanguage">Phrase directions in</label>
+          <select id="wayLanguage">
+            <option value="English">English</option>
+            <option value="Spanish">Spanish</option>
+            <option value="Portuguese">Portuguese</option>
+            <option value="French">French</option>
+            <option value="Arabic">Arabic</option>
+          </select>
+          <label class="checkbox-label"><input type="checkbox" id="stepFree" /> Require step-free route</label>
+          <button type="submit" class="btn btn-primary">Compute route</button>
+        </form>
+        <div id="wayResult" class="result-block" aria-live="polite"></div>
+        <p class="hint">The route itself is computed by Dijkstra's algorithm over the real venue graph — the AI only phrases it naturally, and cannot invent a waypoint.</p>
+      </div>
+    </section>
+
+    <section id="tab-concessions" class="tab-panel" aria-labelledby="concessionsHeading">
+      <div class="panel">
+        <div class="panel-head"><h2 id="concessionsHeading">Concessions &amp; Sustainability</h2></div>
+        
+        <div class="services-section" style="margin-bottom: 16px;">
+          <h3 style="font-size: 0.95rem; color: var(--floodlight); margin-bottom: 8px; text-transform: uppercase;">🍔 Concessions &amp; Restrooms</h3>
+          <ul class="gate-list">
+            <li class="gate-card">
+              <div class="status-indicator status-ok"></div>
+              <div>
+                <strong>Verizon Vegan Stalls</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Wait time: ~3 mins · compostable packaging</div>
+              </div>
+            </li>
+            <li class="gate-card">
+              <div class="status-indicator status-watch"></div>
+              <div>
+                <strong>HCL Hotdogs (Gate C)</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Wait time: ~14 mins · locally sourced</div>
+              </div>
+            </li>
+            <li class="gate-card">
+              <div class="status-indicator status-ok"></div>
+              <div>
+                <strong>North Concourse Restrooms</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Clean · step-free accessible</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="services-section">
+          <h3 style="font-size: 0.95rem; color: var(--floodlight); margin-bottom: 8px; text-transform: uppercase;">🌱 Green Transportation &amp; Eco</h3>
+          <ul class="gate-list">
+            <li class="gate-card">
+              <div class="status-indicator status-ok"></div>
+              <div>
+                <strong>NJ Transit Shuttles</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Status: Operational (every 5 mins) · low carbon</div>
+              </div>
+            </li>
+            <li class="gate-card">
+              <div class="status-indicator status-ok"></div>
+              <div>
+                <strong>EV Charging Hub (Lot G)</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Status: 4/10 available · 100% solar powered</div>
+              </div>
+            </li>
+            <li class="gate-card">
+              <div class="status-indicator status-ok"></div>
+              <div>
+                <strong>Recycling &amp; Water Refills</strong>
+                <div style="font-size: 0.75rem; color: var(--chalk);">Status: Active · 12kg plastic saved today</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-incident" class="tab-panel" aria-labelledby="incidentHeading">
+      <div class="panel">
+        <div class="panel-head"><h2 id="incidentHeading">Incident Triage &amp; Escalation Copilot</h2></div>
+        <p class="hint">Volunteer-facing. Finds the real nearest responder post via the venue graph, then asks the model to read context (not keywords) for severity and draft a dispatch line and a calm phrase for the person involved.</p>
+        <form id="incidentForm" class="stacked-form">
+          <label for="incidentType">Incident type</label>
+          <select id="incidentType">
+            <option value="medical">Medical</option>
+            <option value="lost_person">Lost person / child</option>
+            <option value="security">Security / disturbance</option>
+            <option value="accessibility">Accessibility need</option>
+            <option value="facility">Facility issue</option>
+          </select>
+          <label for="incidentLocation">Reporter's location</label>
+          <select id="incidentLocation"></select>
+          <label for="incidentDescription">What's happening (free text)</label>
+          <textarea id="incidentDescription" rows="3" placeholder="e.g. An elderly fan near Gate A says they feel dizzy and are having trouble standing."></textarea>
+          <label for="incidentLanguage">Volunteer phrase language</label>
+          <select id="incidentLanguage">
+            <option value="English">English</option>
+            <option value="Spanish">Spanish</option>
+            <option value="Portuguese">Portuguese</option>
+            <option value="French">French</option>
+          </select>
+          <button type="submit" class="btn btn-primary">Triage incident</button>
+        </form>
+        
+        <div id="incidentResult" class="result-block" aria-live="polite"></div>
+
+        <!-- Human-in-the-Loop Comm Form -->
+        <div id="dispatchFormBlock" class="panel" style="display: none; margin-top: 16px; border: 1px solid var(--amber); background: rgba(245,166,35,0.02);">
+          <div class="panel-head" style="margin-bottom: 8px;">
+            <h3 style="color: var(--amber); font-size: 0.9rem; text-transform: uppercase; margin: 0;">⚠️ Edit Comm-Draft Targets (Human-in-the-Loop)</h3>
+          </div>
+          <div class="stacked-form">
+            <label for="draftCalmPhrase">Edit Public Signage / Calming Phrase</label>
+            <input type="text" id="draftCalmPhrase" style="font-size: 0.85rem;" />
+            
+            <label for="draftDispatchInstruction">Edit Steward Responder Dispatch Instruction</label>
+            <textarea id="draftDispatchInstruction" rows="2" style="font-size: 0.85rem;"></textarea>
+            
+            <button type="button" id="approveDispatchBtn" class="btn btn-primary" style="margin-top: 8px;">Approve &amp; Dispatch Directive (Alt + A)</button>
+          </div>
+        </div>
+
+        <!-- Time-Travel Ledger Panel -->
+        <div class="panel ledger-panel" style="margin-top: 16px;">
+          <div class="panel-head">
+            <h2>Time-Travel Incident Ledger</h2>
+            <button id="clearLedgerBtn" class="btn btn-ghost small">Clear Ledger</button>
+          </div>
+          <ul id="ledgerList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+            <li class="hint" id="emptyLedgerHint">No incidents dispatched in this session.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Persistent Terminal Console Event Feed -->
+    <div class="panel console-panel" style="margin-top: 16px; border-top: 2px solid var(--navy-600); background: #040812;">
+      <div class="panel-head" style="margin-bottom: 6px;">
+        <h2 style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--pitch); display: flex; align-items: center; gap: 6px; margin: 0;">
+          <span>⚡</span> SYSTEM OPERATIONS CONSOLE
+        </h2>
+        <button id="clearConsoleBtn" class="btn btn-ghost small" style="padding: 2px 6px; font-size: 0.65rem;">Clear</button>
+      </div>
+      <div id="consoleFeed" style="font-family: var(--font-mono); font-size: 0.72rem; line-height: 1.4; color: #a3b8cc; max-height: 110px; overflow-y: auto; padding-right: 4px;">
+        <div style="color: var(--pitch);">[11:19:07] SYSTEM: Command Center console initialized. Dijkstra Routing Engine online.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-container panel" id="mapPanel" role="region" aria-label="Interactive Stadium Map">
+    <div class="panel-head">
+      <h2>Interactive Stadium Live Map</h2>
+      <div class="data-controls">
+        <select id="mapLayerMode" aria-label="Switch map layer" class="small-select" style="margin-right: 8px;">
+          <option value="schematic">Schematic View</option>
+          <option value="satellite">Satellite GPS</option>
+        </select>
+        <select id="mapViewMode" aria-label="Toggle map view mode" class="small-select">
+          <option value="standard">Standard View</option>
+          <option value="heatmap">Heatmap (Occupancy)</option>
+        </select>
+        <button id="clearHighlightsBtn" class="btn btn-ghost small">Clear Highlights</button>
+      </div>
+    </div>
+    <div class="map-viewport" id="stadiumSvgContainer">
+      <svg id="stadiumSvg" viewBox="0 0 600 480" width="100%" height="100%" aria-label="Stadium gate and concourse diagram">
+        <!-- SVG will be dynamically generated by app.js -->
+      </svg>
+      <div id="mapTooltip" class="map-tooltip" role="tooltip" aria-hidden="true"></div>
+    </div>
+    <div class="map-viewport" id="satelliteIframeContainer" style="display: none; padding: 0; background: var(--navy-900);">
+      <iframe width="100%" height="100%" frameborder="0" style="border:0; border-radius:12px;" allowfullscreen="" src="https://maps.google.com/maps?q=Mercedes-Benz%20Stadium&amp;t=k&amp;z=17&amp;ie=UTF8&amp;iwloc=&amp;output=embed"></iframe>
+    </div>
+    <div class="map-legend" id="mapLegendBlock">
+      <div class="legend-title">Legend</div>
+      <div class="legend-grid">
+        <div class="legend-item"><span class="legend-dot gate-dot"></span> Gate</div>
+        <div class="legend-item"><span class="legend-dot concourse-dot"></span> Concourse</div>
+        <div class="legend-item"><span class="legend-dot section-dot"></span> Seating Section</div>
+        <div class="legend-item"><span class="legend-dot medical-dot"></span> Medical Post</div>
+        <div class="legend-item"><span class="legend-dot security-dot"></span> Security Post</div>
+        <div class="legend-item"><span class="legend-dot lost-dot"></span> Lost &amp; Found</div>
+        <div class="legend-item"><span class="legend-dot accessible-dot"></span> Access Entry</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel chat-panel" id="chatPanel" role="region" aria-label="AI Chat Copilot &amp; Assistant">
+    <div class="panel-head">
+      <h2 id="assistantHeading">AI Chat Copilot</h2>
+      <button id="clearChatBtn" class="btn btn-ghost small">Clear Chat</button>
+    </div>
+    <div class="chat-mode-selector" style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <button type="button" class="btn btn-primary small" id="modeCopilotBtn" aria-pressed="true">Ask Copilot (Q&amp;A)</button>
+      <button type="button" class="btn btn-ghost small" id="modeTranslateBtn" aria-pressed="false">Translate Fan Query</button>
+    </div>
+    <div id="chatLog" class="chat-log" role="log" aria-live="polite"></div>
+    
+    <div id="chatSuggestions" class="chat-suggestions" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+      <button type="button" class="chip-btn" data-query="Where is the nearest medical post to Gate A?">🏥 Med Post to Gate A</button>
+      <button type="button" class="chip-btn" data-query="Which gates are currently congested?">🚦 Congested Gates</button>
+      <button type="button" class="chip-btn" data-query="Is there a step-free path from Gate B to Gate E?">♿ Step-free Gate B to E</button>
+    </div>
+
+    <form id="chatForm" class="chat-form">
+      <label for="chatInput" class="visually-hidden" id="chatInputLabel">Ask a question about the stadium layout, gates, or incidents</label>
+      <textarea id="chatInput" placeholder="e.g. Where is the nearest medical post to Gate A?" rows="2"></textarea>
+      <div class="chat-form-actions">
+        <select id="targetLangSelect" aria-label="Volunteer's reply language preference" style="display: none;">
+          <option value="English">Reply to volunteer in English</option>
+          <option value="Spanish">Reply to volunteer in Spanish</option>
+          <option value="French">Reply to volunteer in French</option>
+        </select>
+        <button type="submit" id="chatSubmitBtn" class="btn btn-primary chat-submit-btn">Ask Copilot</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<!-- Decision Assist Popup Overlay -->
+<div id="decisionAssistOverlay" class="decision-assist-overlay" style="display: none;">
+  <div class="da-header">
+    <div class="da-title-row">
+      <span class="da-icon">⚡</span>
+      <h3>DECISION ASSIST</h3>
+      <span id="daDraftBadge" class="da-draft-badge">DRAFT</span>
+    </div>
+    <button id="closeDecisionAssist" class="da-close-btn" aria-label="Close Decision Assist">&times;</button>
+  </div>
+
+  <div class="da-explainability">
+    <h4>📋 EXPLAINABILITY DATA CARD</h4>
+    <div class="da-meta-grid">
+      <div class="da-meta-item"><span class="da-meta-label">Source Data:</span> <span id="daSourceData" class="da-mono">—</span></div>
+      <div class="da-meta-item"><span class="da-meta-label">Grounding check:</span> <span id="daGroundingStatus" class="da-verified">✔ VERIFIED</span></div>
+      <div class="da-meta-item"><span class="da-meta-label">Confidence:</span> <span id="daConfidence" class="da-confidence">—</span></div>
+      <div class="da-meta-item"><span class="da-meta-label">API Latency:</span> <span id="daLatency" class="da-mono">—</span></div>
+    </div>
+  </div>
+
+  <div class="da-comm-draft">
+    <h4>📝 EDIT COMM-DRAFT TARGETS BEFORE BROADCAST</h4>
+
+    <label class="da-field-label"><span class="da-field-icon">⚠️</span> Alert Banner Headline</label>
+    <input type="text" id="daAlertHeadline" class="da-input" placeholder="[!] P0-EMERGENCY: ..." />
+
+    <label class="da-field-label"><span class="da-field-icon">📡</span> Steward Responder Instructions</label>
+    <textarea id="daStewardInstructions" class="da-textarea" rows="3" placeholder="Deploy steward backup crew to..."></textarea>
+
+    <label class="da-field-label"><span class="da-field-icon">📺</span> Public Signage Text Payload</label>
+    <input type="text" id="daSignageText" class="da-input" placeholder="TRAFFIC DELAY AHEAD: Please proceed slowly..." />
+  </div>
+
+  <button id="daApproveBtn" class="da-approve-btn">APPROVE & DISPATCH DIRECTIVE<br/><span class="da-shortcut">Keyboard Shortcut: Alt + A</span></button>
+</div>
+
+<footer class="footer">
+  <p>Built for FIFA World Cup 2026 Smart Stadiums Challenge · Persona: Volunteer · Verticals: Crowd Management, Navigation, Multilingual Assistance, Operational Intelligence (Incident Triage)</p>
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.env
+.env.local
+.DS_Store
+*.log
+coverage
+playwright-report
+test-results
+.vercel
+.railway
+dist
+.git
+.github
+.claude-code.json
+README.md
+*.md

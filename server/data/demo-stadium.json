@@ -1,0 +1,55 @@
+{
+  "id": "demo-stadium",
+  "name": "Demo Stadium",
+  "nodes": [
+    { "id": "gate-a", "name": "Gate A", "type": "gate" },
+    { "id": "gate-b", "name": "Gate B", "type": "gate" },
+    { "id": "gate-c", "name": "Gate C", "type": "gate" },
+    { "id": "gate-d", "name": "Gate D", "type": "gate" },
+    { "id": "gate-e", "name": "Gate E", "type": "gate" },
+    { "id": "gate-f", "name": "Gate F", "type": "gate" },
+    { "id": "concourse-n", "name": "North Concourse", "type": "concourse" },
+    { "id": "concourse-ne", "name": "Northeast Concourse", "type": "concourse" },
+    { "id": "concourse-se", "name": "Southeast Concourse", "type": "concourse" },
+    { "id": "concourse-s", "name": "South Concourse", "type": "concourse" },
+    { "id": "concourse-sw", "name": "Southwest Concourse", "type": "concourse" },
+    { "id": "concourse-nw", "name": "Northwest Concourse", "type": "concourse" },
+    { "id": "section-101", "name": "Section 101 (Lower Bowl North)", "type": "section" },
+    { "id": "section-115", "name": "Section 115 (Lower Bowl South)", "type": "section" },
+    { "id": "medical-1", "name": "Medical Post 1", "type": "medical_post" },
+    { "id": "medical-2", "name": "Medical Post 2", "type": "medical_post" },
+    { "id": "security-1", "name": "Security Post 1", "type": "security_post" },
+    { "id": "lost-found", "name": "Lost & Found / Family Meeting Point", "type": "lost_and_found" },
+    { "id": "accessible-entry-1", "name": "Accessible Entry (North)", "type": "accessible_entry" },
+    { "id": "accessible-entry-2", "name": "Accessible Entry (South)", "type": "accessible_entry" }
+  ],
+  "edges": [
+    { "from": "gate-a", "to": "concourse-n", "distance_m": 45, "step_free": true },
+    { "from": "gate-b", "to": "concourse-ne", "distance_m": 50, "step_free": true },
+    { "from": "gate-c", "to": "concourse-se", "distance_m": 40, "step_free": true },
+    { "from": "gate-d", "to": "concourse-s", "distance_m": 55, "step_free": true },
+    { "from": "gate-e", "to": "concourse-sw", "distance_m": 48, "step_free": true },
+    { "from": "gate-f", "to": "concourse-nw", "distance_m": 42, "step_free": true },
+
+    { "from": "concourse-n", "to": "concourse-ne", "distance_m": 120, "step_free": true },
+    { "from": "concourse-ne", "to": "concourse-se", "distance_m": 130, "step_free": true },
+    { "from": "concourse-se", "to": "concourse-s", "distance_m": 110, "step_free": true },
+    { "from": "concourse-s", "to": "concourse-sw", "distance_m": 125, "step_free": true },
+    { "from": "concourse-sw", "to": "concourse-nw", "distance_m": 128, "step_free": true },
+    { "from": "concourse-nw", "to": "concourse-n", "distance_m": 118, "step_free": true },
+
+    { "from": "concourse-n", "to": "section-101", "distance_m": 30, "step_free": true },
+    { "from": "concourse-s", "to": "section-115", "distance_m": 30, "step_free": true },
+
+    { "from": "concourse-n", "to": "medical-1", "distance_m": 25, "step_free": true },
+    { "from": "concourse-s", "to": "medical-2", "distance_m": 25, "step_free": true },
+    { "from": "concourse-se", "to": "security-1", "distance_m": 35, "step_free": true },
+    { "from": "concourse-ne", "to": "lost-found", "distance_m": 20, "step_free": true },
+
+    { "from": "concourse-n", "to": "accessible-entry-1", "distance_m": 15, "step_free": true },
+    { "from": "concourse-s", "to": "accessible-entry-2", "distance_m": 15, "step_free": true },
+
+    { "from": "concourse-nw", "to": "section-101", "distance_m": 90, "step_free": false },
+    { "from": "concourse-sw", "to": "section-115", "distance_m": 90, "step_free": false }
+  ]
+}
