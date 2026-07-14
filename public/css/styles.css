@@ -205,6 +205,7 @@ h2{
   font-size:.72rem; font-family:var(--font-mono); color:var(--chalk);
   border:1px solid var(--navy-700); padding:4px 8px; border-radius:20px;
   display: inline-block;
+  white-space: nowrap;
 }
 .badge.ai-on{ color:var(--pitch); border-color:var(--pitch-dim); }
 .badge.ai-off{ color:var(--amber); border-color:var(--amber); }
