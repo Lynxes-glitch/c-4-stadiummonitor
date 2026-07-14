@@ -65,6 +65,7 @@ function postRequest(url, headers, body) {
         "Content-Length": Buffer.byteLength(data),
       },
       family: 4, // Force IPv4 to prevent IPv6 timeout issues in macOS Node fetch
+      timeout: 30000, // 30s timeout to prevent Vercel function timeout (60s limit)
     };
 
     const req = https.request(options, (res) => {
@@ -159,7 +160,7 @@ async function callOpenRouter(prompt) {
       model: config.openrouterModel,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.3,
-      max_tokens: 1500,
+      max_tokens: 500,
     }
   );
   if (!res.ok) throw new AIProviderError(`AI provider returned non-200 status`);
