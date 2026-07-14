@@ -104,7 +104,7 @@ export async function callModel(prompt) {
 
 async function callOpenRouterWithFallback(prompt) {
   const models = [
-    "nvidia/llama-nemotron-rerank-vl-1b-v2:free"  // Small, fast free model
+    "google/gemma-4-26b-a4b-it:free"  // Original working model
   ];
 
   let lastError;
